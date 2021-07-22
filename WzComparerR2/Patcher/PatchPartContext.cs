@@ -14,7 +14,7 @@ namespace WzComparerR2.Patcher
             this.fileName = fileName;
             this.type = type;
 
-            Match m = Regex.Match(fileName, @"^([A-Za-z]+)\d*(?:\.wz)?$");
+            Match m = Regex.Match(fileName, @"^([A-Za-z]+)(_?\d+)?(?:\.wz)?$");
             if (m.Success)
             {
                 fileName = m.Result("$1");

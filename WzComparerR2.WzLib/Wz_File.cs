@@ -402,7 +402,7 @@ namespace WzComparerR2.WzLib
             {
                 string dir = dirs[i];
                 Wz_Node t = parent.Nodes.Add(dir);
-                if (willLoadBaseWz)
+                if (useBaseWz)
                 {
                     this.WzStructure.has_basewz = true;
                     if (i < dirCount)
@@ -412,9 +412,37 @@ namespace WzComparerR2.WzLib
 
                     try
                     {
-                        string filePath = Path.Combine(baseFolder, dir + ".wz");
-                        if (File.Exists(filePath))
-                            this.WzStructure.LoadFile(filePath, t);
+                        bool loaded = false;
+                        if (this.WzStructure.AutoDetectExtFiles)
+                        {
+                            //检测KMST1125的wz文件
+                            string filePath = Path.GetFullPath(Path.Combine(baseFolder, willLoadBaseWz ? ".." : ".", dir, dir + ".wz"));
+                            if (File.Exists(filePath))
+                            {
+                                this.WzStructure.LoadFile(filePath, t);
+                                loaded = true;
+                            }
+                            for (int fileID = 0; ; fileID++)
+                            {
+                                string extDirName = dir + "_" + fileID.ToString("D3");
+                                string extWzFile = Path.GetFullPath(Path.Combine(baseFolder, willLoadBaseWz ? ".." : ".", dir, extDirName + ".wz"));
+                                if (File.Exists(extWzFile))
+                                {
+                                    this.WzStructure.LoadFile(extWzFile, t);
+                                }
+                                else
+                                {
+                                    break;
+                                }
+                            }
+                        }
+                        if (!loaded)
+                        {
+                            string filePath = Path.Combine(baseFolder, dir + ".wz");
+                            if (File.Exists(filePath))
+                                this.WzStructure.LoadFile(filePath, t);
+                        }
+
                     }
                     catch (Exception ex)
                     {
@@ -515,7 +543,7 @@ namespace WzComparerR2.WzLib
             {
                 string wzName = this.node.Text;
 
-                Match m = Regex.Match(wzName, @"^([A-Za-z]+)(\d+)?(?:\.wz)?$");
+                Match m = Regex.Match(wzName, @"^([A-Za-z]+)(_?\d+)?(?:\.wz)?$");
                 if (m.Success)
                 {
                     wzName = m.Result("$1");
